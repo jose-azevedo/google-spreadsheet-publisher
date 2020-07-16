@@ -1,0 +1,22 @@
+{
+  "name": "google-drive-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jose-azevedo/google-drive-app.git"
+  },
+  "author": "José Azevedo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jose-azevedo/google-drive-app/issues"
+  },
+  "homepage": "https://github.com/jose-azevedo/google-drive-app#readme",
+  "dependencies": {
+    "googleapis": "^54.1.0"
+  }
+}
