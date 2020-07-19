@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/jose-azevedo/google-drive-app#readme",
   "dependencies": {
+    "axios": "^0.19.2",
+    "express": "^4.17.1",
     "googleapis": "^54.1.0"
   }
 }
