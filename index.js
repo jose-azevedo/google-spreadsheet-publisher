@@ -11,12 +11,13 @@ app.use(express.json())
 const {client_secret, client_id, redirect_uris} = credentials;
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
+
 app.get('/google/auth', (req, res) => {
   res.send(`Authorization code: ${req.query.code}`);
 });
 
 app.post('/upload', (req, res) => {
-  listFiles(oAuth2Client, req.body, uploadFiles);
+  searchFile(oAuth2Client, req.body);
   res.status(200).end()
 });
 
@@ -31,7 +32,7 @@ const TOKEN_PATH = 'token.json';
 
 fs.readFile('credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
-  authorize(listFiles);
+  authorize(searchFile);
 });
 
 function authorize(callback) {
@@ -66,7 +67,7 @@ function getAccessToken(oAuth2Client, callback) {
   });
 }
 
-function listFiles(auth, body, callback) {
+function searchFile(auth, body) {
   const drive = google.drive({version: 'v3', auth});
   drive.files.list({
     q: `name='${body.name}'`,
@@ -76,23 +77,19 @@ function listFiles(auth, body, callback) {
     if (err) return console.log('The API returned an error: ' + err);
     var files = res.data.files.map((file) => {return file.name});
     var ids = res.data.files.map((file) => {return file.id});
-    var fileExists;
-    var id;
-    console.log(files);
+    console.log(`Arquivos encontrados: ${files}`);
     if(files.indexOf(body.name) > -1) {
-      console.log('Ta no array');
-      fileExists = true;
-      id = ids[files.indexOf(body.name)];
+      console.log('Arquivo de medição encontrado. Atualizando arquivo!');
+      var id = ids[files.indexOf(body.name)];
+      updateData(auth, id, body.name, body.data);
     } else {
-      fileExists = false;
-      console.log('não ta no array');
+      console.log('Arquivo de medição não encontrado. Criando um novo arquivo!');
+      createFile(auth, body.name, body.data)
     }
-
-    callback(auth, id, body.name, body.data, fileExists);
   });
 }
 
-function uploadFiles(auth, id, filename, filedata, fileExists) {
+function updateData(auth, id, filename, filedata) {
   const sheets = google.sheets({version: 'v4', auth});
   console.log(`Filename: ${filename}`);
   console.log(`id: ${id}`);
@@ -116,6 +113,30 @@ function uploadFiles(auth, id, filename, filedata, fileExists) {
       console.log(err);
     } else {
       console.log('%d cells updated.', result.updatedCells);
+    }
+  });
+}
+
+function createFile(auth, filename, filedata) {
+  const drive = google.drive({version: 'v3', auth});
+  var fileMetadata = {
+    'name': filename,
+    'mimeType': 'application/vnd.google-apps.spreadsheet'
+  };
+  var media = {
+
+  };
+  drive.files.create({
+    resource: fileMetadata,
+    media: media,
+    fields: 'id'
+  }, function (err, file) {
+    if (err) {
+      // Handle error
+      console.error(err);
+    } else {
+      console.log(`Arquivo criado com sucesso! Id: ${file.data.id}`);
+      updateData(auth, file.data.id, filename, filedata)
     }
   });
 }
