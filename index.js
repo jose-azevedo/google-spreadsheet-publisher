@@ -2,14 +2,25 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const express = require('express');
-const credentials = require('./credentials.json').installed;
+require('dotenv').config()
 
 const app = express();
 app.use(express.json()) 
 
-const {client_secret, client_id, redirect_uris} = credentials;
-const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+const client_secret = process.env.CLIENT_SECRET;
+const client_id = process.env.CLIENT_ID;
+const redirect_uris = [process.env.REDIRECT_URIS];
 
+const token = {
+    access_token: process.env.ACCESS_TOKEN,
+    refresh_token: process.env.REFRESH_TOKEN,
+    scope: process.env.SCOPE,
+    token_type: process.env.TOKEN_TYPE,
+    expiry_date: process.env.EXPIRY_DATE
+}
+
+const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+oAuth2Client.setCredentials(token);
 
 app.get('/google/auth', (req, res) => {
   res.send(`Authorization code: ${req.query.code}`);
@@ -29,15 +40,12 @@ const SCOPES = ['https://www.googleapis.com/auth/drive.file','https://www.google
 
 const TOKEN_PATH = 'token.json';
 
-fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  authorize(searchFile);
-});
+
 
 function authorize(callback) {
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getAccessToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token));
+    
   });
 }
 

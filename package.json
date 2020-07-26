@@ -20,5 +20,8 @@
   "dependencies": {
     "express": "^4.17.1",
     "googleapis": "^54.1.0"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0"
   }
 }
