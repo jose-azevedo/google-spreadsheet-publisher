@@ -2,7 +2,6 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const express = require('express');
-const axios = require('axios');
 const credentials = require('./credentials.json').installed;
 
 const app = express();
@@ -77,13 +76,12 @@ function searchFile(auth, body) {
     if (err) return console.log('The API returned an error: ' + err);
     var files = res.data.files.map((file) => {return file.name});
     var ids = res.data.files.map((file) => {return file.id});
-    console.log(`Arquivos encontrados: ${files}`);
     if(files.indexOf(body.name) > -1) {
-      console.log('Arquivo de medição encontrado. Atualizando arquivo!');
+      console.log('Arquivo de medição encontrado. Atualizando arquivo!\n');
       var id = ids[files.indexOf(body.name)];
       updateData(auth, id, body.name, body.data);
     } else {
-      console.log('Arquivo de medição não encontrado. Criando um novo arquivo!');
+      console.log('Arquivo de medição não encontrado. Criando um novo arquivo!\n');
       createFile(auth, body.name, body.data)
     }
   });
@@ -91,28 +89,24 @@ function searchFile(auth, body) {
 
 function updateData(auth, id, filename, filedata) {
   const sheets = google.sheets({version: 'v4', auth});
-  console.log(`Filename: ${filename}`);
-  console.log(`id: ${id}`);
-  console.log(`data: ${filedata}`);
-  var data = filedata.replace(/\.+/g, ',');
-  data = data.split(';');
-  console.log(`data: ${data}`);
-  let values = [
-    data
-  ];
+  console.log(`Arquivo: ${filename}`);
+  console.log(`ID: ${id}`);
+  console.log(`Dados a inserir: ${filedata}`);
+
+  var values = parseRequestBody(filedata)
   const resource = {
     values,
   };
   sheets.spreadsheets.values.append ({
     spreadsheetId: id,
-    range: 'A1:H1',
+    range: 'A1:J1',
     resource,
     valueInputOption: 'USER_ENTERED'
   }, (err, result) => {
     if (err) {
       console.log(err);
     } else {
-      console.log('%d cells updated.', result.updatedCells);
+      console.log(`Arquivo atualizado: ${filename}\n`);
     }
   });
 }
@@ -124,7 +118,7 @@ function createFile(auth, filename, filedata) {
     'mimeType': 'application/vnd.google-apps.spreadsheet'
   };
   var media = {
-
+    mimeType: 'text/csv'
   };
   drive.files.create({
     resource: fileMetadata,
@@ -139,4 +133,15 @@ function createFile(auth, filename, filedata) {
       updateData(auth, file.data.id, filename, filedata)
     }
   });
+}
+
+function parseRequestBody(rawFileData) {
+  var data = rawFileData.split(';');
+  var linesToAppend = [];
+  if (data.length > 10) {
+    linesToAppend = [data.slice(0, 10), data.slice(10)];
+  } else {
+    linesToAppend = [data];
+  }
+  return linesToAppend;
 }
