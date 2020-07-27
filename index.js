@@ -1,7 +1,6 @@
-const fs = require('fs');
-const readline = require('readline');
 const {google} = require('googleapis');
 const express = require('express');
+// @TODO remover comentário ao usar localmente
 //require('dotenv').config()
 
 const app = express();
@@ -34,49 +33,10 @@ app.post('/upload', (req, res) => {
   searchFile(oAuth2Client, req.body);
   res.status(200).end();
 });
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 5000;
 var server = app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
-
-// If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/drive.metadata'];
-
-const TOKEN_PATH = 'token.json';
-
-
-
-function authorize(callback) {
-  fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getAccessToken(oAuth2Client, callback);
-    
-  });
-}
-
-function getAccessToken(oAuth2Client, callback) {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-  });
-  console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  rl.question('Enter the code from that page here: ', (code) => {
-    rl.close();
-    oAuth2Client.getToken(code, (err, token) => {
-      if (err) return console.error('Error retrieving access token', err);
-      oAuth2Client.setCredentials(token);
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err);
-        console.log('Token stored to', TOKEN_PATH);
-      });
-      callback(oAuth2Client);
-      
-    });
-  });
-}
 
 function searchFile(auth, body) {
   const drive = google.drive({version: 'v3', auth});
