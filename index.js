@@ -22,17 +22,21 @@ const token = {
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 oAuth2Client.setCredentials(token);
 
+app.get('/', (req, res) => {
+  res.status(200).end();
+});
+
 app.get('/google/auth', (req, res) => {
   res.send(`Authorization code: ${req.query.code}`);
 });
 
 app.post('/upload', (req, res) => {
   searchFile(oAuth2Client, req.body);
-  res.status(200).end()
+  res.status(200).end();
 });
-
-var server = app.listen(5000, () => {
-  console.log('Server listening on port 5000');
+var port = process.env.PORT || 8080;
+var server = app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
 
 // If modifying these scopes, delete token.json.
