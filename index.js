@@ -2,7 +2,7 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const express = require('express');
-require('dotenv').config()
+//require('dotenv').config()
 
 const app = express();
 app.use(express.json()) 
