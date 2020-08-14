@@ -2,6 +2,7 @@ const fs = require('fs');
 const readline = require('readline');
 const {google} = require('googleapis');
 const express = require('express');
+const credentials = require('./credentials.json');
 
 const app = express();
 app.use(express.json()) 
@@ -10,8 +11,13 @@ app.get('/', (req, res) => {
   res.status(200).end();
 });
 
+const {client_secret, client_id, redirect_uris} = credentials.installed;
+const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+
 app.get('/google/auth', (req, res) => {
+  console.log('chegou')
   res.send(`Authorization code: ${req.query.code}`);
+  oAuth2Client.getToken
 });
 
 var port = process.env.PORT || 5000;
